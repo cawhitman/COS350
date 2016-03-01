@@ -1,66 +1,90 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 
 //Prototypes
-long getFileSize(char *filename);
-char *compress(char *filename, long fileSize);
+long int getFileSize(char *input);
+void compress(char *filename, long int fileSize);
 int decompress();
 
 //Globals
-FILE *fp;
-long fileSize;
+unsigned int fileSize;
 
-int main()
-{
+int main(int argc, char *argv[])
+{	
+	if(argc != 2)
+	{
+		printf("Please add a txt file as an argument. \n");
+		return 0; 
+	}
 
-	fp = stdin;
-	
+         
 	//get filesize of standard in 
-	fileSize = getFileSize(fp);
+	fileSize = getFileSize(argv[1]);
 
 	//create output buffer
-	char *compressionbuffer = malloc(fileSize + 1);
+	unsigned char *compressionbuffer = malloc(fileSize + 1);
 
 	//compress 8 bits to 7 bits
-	compressionbuffer = compress(fp, fileSize);
+	compress(argv[1], fileSize);
 	
-
 	free(compressionbuffer);
 	return 0;
 }
 
 //File size in bytes
-long getFileSize (char *filename)
+long int getFileSize (char *input)
 {
-	long size;
-	FILE *f;
+	long int size;
+	FILE *file_fp;
 
-	f = fopen(filename, "rb");
-	if (f== NULL) return -1;
-	fseek(f, 0, SEEK_END);
-	size = ftellf(f);
-	fclose(f);
+      	file_fp = fopen(input, "rb");
+	
+	fseek(file_fp, 0L, SEEK_END);
+	size = ftell(file_fp );
+	
+	rewind(file_fp );
+	fclose(file_fp );
 
 	return size; 
 }
 
 //Compresses 8 bit ASCII characters into 7 bits 
-char *compress(char *filename, long fileSize)
+void compress(char *filename, long int fileSize)
 {
-	//create output buffer
-	char *outbuffer = malloc(fileSize + 1);
+        FILE *in_fp;
+	FILE *out_fp;
+	
+	//Create compressed output file
+	out_fp = fopen("compressedOut.txt", "w+");
+	in_fp = fopen(filename, "rb");
 
-	int charBuf; 
-	float bytes = filesize / 8; 
-	f = fopen(filename, "rb");
+	unsigned int nextChar; 
+	unsigned int temp;
+	
+	//Initialize values
+	temp = fgetc(in_fp);
 	int count = 0;
-	while((charBuff = fgetc(filename)!= EOF) && count <= bytes)
-	{
-		outbuffer |= (charBuf << (7 * count));
-		count++; 
-	}
 
-	return outbuffer; 
+	while(temp!= EOF)
+	{
+		nextChar = fgetc(in_fp);
+		unsigned char compressedChar = temp | (nextChar << (8 - count));
+		
+	
+		temp = nextChar;
+		count++;
+		if(count <=7)
+		{
+			fwrite (&compressedChar, 1, 1, out_fp);
+		} else
+		{
+	 		//chop off bits
+			count = 0; 
+		}
+	}
+	
+	
 }
 
 // 32 bit integer is written at the start of the output file
