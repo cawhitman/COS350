@@ -1,5 +1,5 @@
-# COS350
-Systems Programming
+# z827
+COS350 Systems Programming
 
 Contents:
 
