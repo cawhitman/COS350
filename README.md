@@ -7,6 +7,7 @@ Contents:
     shake.txt
     
 Descriptions:
+
     z827.c
         z827.c is a program that compresses text files and adds an extension .z827. It also decompresses its compressed .z827 
         files. 
