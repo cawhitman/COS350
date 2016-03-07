@@ -7,14 +7,17 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 //Prototypes
 long int getFileSize(char *input);
 void compress(char *filename, long int fileSize);
 void decompress(char *filename, long int fileSize);
-
+int EndsWithZ827(const char* s);
+char *strip(char *s);
 //Globals
 unsigned int fileSize;
+
 
 int main(int argc, char *argv[])
 {	
@@ -29,14 +32,16 @@ int main(int argc, char *argv[])
 	//get filesize of standard in 
 	fileSize = getFileSize(argv[1]);
 
-	//create output buffer
-	unsigned char *compressionbuffer = malloc(fileSize + 1);
-
 	//compress 8 bits to 7 bits
-	compress(argv[1], fileSize);
-	decompress("compressedOut.txt", fileSize);
 
-	free(compressionbuffer);
+	if(EndsWithZ827(argv[1])){
+		decompress(argv[1], fileSize);
+	}
+
+	else{
+		compress(argv[1], fileSize);
+	}
+
 	return 0;
 }
 
@@ -65,10 +70,22 @@ void compress(char *filename, long int fileSize)
 {
 	FILE *in_fp;
 	int out_fp;
-	
+	FILE *fp;
+	char *orig_filename;
+	strcpy(orig_filename,filename);
+	 
+
 	//Create compressed output file
-	out_fp = open("compressedOut.txt", O_WRONLY);
+	//out_fp = open("short.txt.z827", O_WRONLY);
+	//char * completeFileName = strcat(filename,".z827")
+	
 	in_fp = fopen(filename, "rb");
+	
+
+	strcat(filename,".z827");
+	fp = fopen(filename, "w");
+	fclose(fp);
+	out_fp = open(filename, O_WRONLY);
 
 	unsigned int nextChar; 
 	unsigned int temp;
@@ -87,6 +104,8 @@ void compress(char *filename, long int fileSize)
 	{
 		nextChar = fgetc(in_fp);
 		if (nextChar == EOF){
+			fclose(in_fp);
+			remove(strip(filename));
 			return;
 		}
 
@@ -111,6 +130,7 @@ void compress(char *filename, long int fileSize)
 			leftShiftCount = 7;
 		}
 	}
+	
 }
 
 // 32 bit integer is written at the start of the output file
@@ -120,10 +140,13 @@ void decompress(char *filename, long int fileSize)
 {
 	FILE *in_fp;
 	int out_fp;
+	FILE *fp;
 	
-	//Create compressed output file
-	out_fp = open("decompressed.txt", O_WRONLY);
-	in_fp = fopen("compressedOut.txt", "rb");
+	in_fp = fopen(filename, "rb");
+	//Create compressed output file by stripping the .x827 from the file
+	fp = fopen(strip(filename), "w");
+	fclose(fp);
+	out_fp = open(filename, O_WRONLY);
 
 	unsigned int nextChar; 
 	unsigned int temp;
@@ -144,7 +167,7 @@ void decompress(char *filename, long int fileSize)
 		
 		//get original character
 		unsigned char decompressedChar = compressedChar & 0x7f; //apply mask to get original val
-		printf("Decompressed char: %d\n", decompressedChar);
+		
 		write (out_fp, &decompressedChar, 1);
 
 		
@@ -172,4 +195,35 @@ void decompress(char *filename, long int fileSize)
 			leftShiftCount = 1;
 		}
 	}
+
+	write (out_fp,'\0', 1);
+	strcat(filename,".z827");
+	remove(filename);
+
+}
+int EndsWithZ827(const char* s)
+{
+  int ret = 0;
+
+  if (s != NULL)
+  {
+    size_t size = strlen(s);
+
+    if (size >= 5 &&
+        s[size-5] == '.' &&
+        s[size-4] == 'z' &&
+        s[size-3] == '8' &&
+        s[size-2] == '2' &&
+	s[size-1] == '7')
+    {
+      ret = 1;
+    }
+  }
+
+  return ret;
+}
+char *strip(char* s){
+	int length = strlen(s);
+	s[length -5] = '\0';
+	return s;
 }
