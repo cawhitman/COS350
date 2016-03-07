@@ -2,6 +2,7 @@
 Systems Programming
 
 Contents:
+
     z827.c
     short.txt
     shake.txt
@@ -19,9 +20,11 @@ Descriptions:
         A long text file to test with.
         
 Bugs:
+
     Upon compressing a text file we lose the last character byte. 
     
 How to run: 
-    gcc z827.c -o z827
-    z827 <textFileName> OR z827 <textFileName.z827>
+
+    > gcc z827.c -o z827
+    > z827 <textFileName> OR z827 <textFileName.z827>
         
